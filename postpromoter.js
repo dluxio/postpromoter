@@ -582,7 +582,42 @@ function checkPost(memo, amount, currency, sender, retries) {
       }
     }
   }
-
+  // Check for account create request
+  if (memo.startsWith('Discounted Account Creation Request')) {
+    // check number of accounts to issue > 0 => send same transaction to affiliate if 0
+    // check blacklist for spammy account creators
+    // sender UA score to determine fee
+    // parse memo for username and public keys and email / phone
+    var memoPubkey = memo.substring(memo.indexOf("memoPubkey:")+11,memo.lastIndexOf(';'));
+    var ownerPubkey = memo.substring(memo.indexOf("ownerPubkey:")+12,memo.lastIndexOf(';'));
+    var username = memo.substring(memo.indexOf("username:")+9,memo.lastIndexOf(';'));
+    var postingPubkey = memo.substring(memo.indexOf("postingPubkey:")+14,memo.lastIndexOf(';'));
+    var activePubkey = memo.substring(memo.indexOf("activePubkey:")+13,memo.lastIndexOf(';'));
+    const create_op = [
+      'create_claimed_account',
+      {
+        active: dsteem.Authority.from(activePubkey),
+        creator: config.account,
+        extensions: [],
+        json_metadata: '',
+        memo_key: memoPubkey,
+        new_account_name: username,
+        owner: dsteem.Authority.from(ownerPubkey),
+        posting: dsteem.Authority.from(postingPubkey),
+      },
+    ];
+    client.broadcast.sendOperations([create_op], dsteem.PrivateKey.fromString(config.active_key)).then(function(result) {
+	    if(result.err){
+		utils.log(`Discounted Account:@${username} failed to create`);
+		refund(sender, amount, currency, `@${username} failed to create :(`);
+		return;
+	    } else {
+     		utils.log(`Discounted Account:@${username} created at the request of ${sender}`);
+      		refund(sender, amount, currency, `@${username} created!`);
+      		return;
+	    }
+    });
+  }
   // Parse the author and permlink from the memo URL
   var permLink = memo.substr(memo.lastIndexOf('/') + 1);
   var site = memo.substring(memo.indexOf('://')+3,memo.indexOf('/', memo.indexOf('://')+3));
