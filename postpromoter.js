@@ -583,16 +583,16 @@ function checkPost(memo, amount, currency, sender, retries) {
     }
   }
   // Check for account create request
-  if (memo.startsWith('Discounted Account Creation Request')) {
+  if (memo.startsWith('DACR')) {
     // check number of accounts to issue > 0 => send same transaction to affiliate if 0
     // check blacklist for spammy account creators
     // sender UA score to determine fee
     // parse memo for username and public keys and email / phone
-    var memoPubkey = memo.substring(memo.indexOf("memoPubkey:")+11,memo.lastIndexOf(';'));
-    var ownerPubkey = memo.substring(memo.indexOf("ownerPubkey:")+12,memo.lastIndexOf(';'));
-    var username = memo.substring(memo.indexOf("username:")+9,memo.lastIndexOf(';'));
-    var postingPubkey = memo.substring(memo.indexOf("postingPubkey:")+14,memo.lastIndexOf(';'));
-    var activePubkey = memo.substring(memo.indexOf("activePubkey:")+13,memo.lastIndexOf(';'));
+    var activePubkey = memo.substring(memo.indexOf("a:")+2,memo.indexOf(';m:'));
+    var memoPubkey = memo.substring(memo.indexOf("m:")+2,memo.indexOf(';o:'));
+    var ownerPubkey = memo.substring(memo.indexOf("o:")+2,memo.indexOf(';p:'));
+    var postingPubkey = memo.substring(memo.indexOf("p:")+2,memo.indexOf(';u:'));
+    var username = memo.substring(memo.indexOf("u:")+2,memo.lastIndexOf(';'));
     const create_op = [
       'create_claimed_account',
       {
